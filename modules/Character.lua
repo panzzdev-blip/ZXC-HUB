@@ -1,33 +1,69 @@
--- ZXC HUB v20.1.5
--- Module: Character
+--[[
+    ZXC HUB v20.1.5 — NEXUS ULTIMATE
+    Module: Character
+    Description: Character information utilities
+]]
 
 local Character = {}
 
-function Character.GetInfo()
-    local Players = game:GetService("Players")
-    local player = Players.LocalPlayer
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
 
-    if not player then
+-- Get the current character
+function Character.GetCharacter()
+    return LocalPlayer.Character
+end
+
+-- Get the character's humanoid
+function Character.GetHumanoid()
+    local character = Character.GetCharacter()
+
+    if not character then
         return nil
     end
 
-    local character = player.Character
+    return character:FindFirstChildOfClass("Humanoid")
+end
 
-    if not character then
+-- Get character information
+function Character.GetInfo()
+    local humanoid = Character.GetHumanoid()
+    local character = Character.GetCharacter()
+
+    if not humanoid or not character then
         return {
-            Name = player.Name,
-            State = "Character not loaded"
+            Loaded = false,
+            Message = "Character is loading..."
         }
     end
 
-    local humanoid = character:FindFirstChildOfClass("Humanoid")
+    local rootPart = character:FindFirstChild("HumanoidRootPart")
 
     return {
-        Name = player.Name,
-        State = "Loaded",
-        Health = humanoid and humanoid.Health or 0,
-        MaxHealth = humanoid and humanoid.MaxHealth or 0
+        Loaded = true,
+        Name = LocalPlayer.Name,
+        DisplayName = LocalPlayer.DisplayName,
+        Health = math.floor(humanoid.Health),
+        MaxHealth = math.floor(humanoid.MaxHealth),
+        WalkSpeed = humanoid.WalkSpeed,
+        JumpPower = humanoid.JumpPower,
+        Position = rootPart and tostring(rootPart.Position) or "Unavailable"
     }
+end
+
+-- Get current health percentage
+function Character.GetHealthPercent()
+    local humanoid = Character.GetHumanoid()
+
+    if not humanoid or humanoid.MaxHealth <= 0 then
+        return 0
+    end
+
+    return math.clamp(
+        humanoid.Health / humanoid.MaxHealth * 100,
+        0,
+        100
+    )
 end
 
 return Character
